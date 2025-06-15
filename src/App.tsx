@@ -628,7 +628,7 @@ const MapViewer: React.FC = () => {
 
     const randomLocation =
       candidates[Math.floor(Math.random() * candidates.length)];
-    const locationIndex = filteredLocations.findIndex(
+    const locationIndex = currentMapData.locations.findIndex(
       (loc) => loc === randomLocation,
     );
     setSelectedMarkerIndex(locationIndex);
