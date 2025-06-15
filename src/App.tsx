@@ -26,10 +26,17 @@ interface TooltipState {
   position: { x: number; y: number };
 }
 
+interface DragState {
+  isDragging: boolean;
+  dragIndex: number | null;
+  startPos: { x: number; y: number };
+  offset: { x: number; y: number };
+}
+
 // Map and location data - easily editable
 const initialMapData: MapDataCollection = {
   game_map: {
-    name: "Game Map",
+    name: "Rondo",
     image: "rondo.png",
     locations: [
       {
@@ -83,20 +90,20 @@ const Tooltip: React.FC<TooltipProps> = ({ location, position, visible }) => {
   if (!visible || !location) return null;
 
   return (
-    <div
-      className={styles.tooltip}
-      style={{
-        left: position.x - 60,
-        top: position.y - 80,
-      }}
-    >
-      <div className={styles.tooltipName}>{location.name}</div>
-      <div>{location.type}</div>
-      <div>{location.buildings} buildings</div>
-      <div>
-        ({location.x}, {location.y})
+      <div
+          className={styles.tooltip}
+          style={{
+            left: position.x - 60,
+            top: position.y - 80,
+          }}
+      >
+        <div className={styles.tooltipName}>{location.name}</div>
+        <div>{location.type}</div>
+        <div>{location.buildings} buildings</div>
+        <div>
+          ({location.x}, {location.y})
+        </div>
       </div>
-    </div>
   );
 };
 
@@ -105,57 +112,70 @@ interface MarkerProps {
   index: number;
   isSelected: boolean;
   isEditMode: boolean;
+  isDragging: boolean;
   onSelect: (index: number) => void;
   onHover: (e: React.MouseEvent, location: Location) => void;
   onLeave: () => void;
   onDelete?: (index: number) => void;
+  onDragStart?: (e: React.MouseEvent, index: number) => void;
 }
 
 const Marker: React.FC<MarkerProps> = ({
-  location,
-  index,
-  isSelected,
-  isEditMode,
-  onSelect,
-  onHover,
-  onLeave,
-  onDelete,
-}) => {
+                                         location,
+                                         index,
+                                         isSelected,
+                                         isEditMode,
+                                         isDragging,
+                                         onSelect,
+                                         onHover,
+                                         onLeave,
+                                         onDelete,
+                                         onDragStart,
+                                       }) => {
   const markerClasses = [
     styles.marker,
     isSelected ? styles.markerSelected : styles.markerNormal,
     isEditMode ? styles.markerEditMode : "",
+    isDragging ? styles.markerDragging : "",
   ]
-    .filter(Boolean)
-    .join(" ");
+      .filter(Boolean)
+      .join(" ");
 
   const style: React.CSSProperties = {
     left: location.x,
     top: location.y,
+    cursor: isEditMode ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+    zIndex: isDragging ? 1000 : 'auto',
   };
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     if (isEditMode && e.shiftKey && onDelete) {
       e.stopPropagation();
       onDelete(index);
+    } else if (isEditMode && onDragStart) {
+      e.stopPropagation();
+      onDragStart(e, index);
     } else {
       onSelect(index);
     }
   };
 
+  const getTitle = () => {
+    if (isEditMode) {
+      return "Drag to move, Shift+Click to delete, Click to select";
+    }
+    return "Click to select";
+  };
+
   return (
-    <div
-      className={markerClasses}
-      style={style}
-      onClick={handleClick}
-      onMouseEnter={(e) => onHover(e, location)}
-      onMouseLeave={onLeave}
-      title={
-        isEditMode
-          ? "Click to select, Shift+Click to delete"
-          : "Click to select"
-      }
-    />
+      <div
+          className={markerClasses}
+          style={style}
+          onMouseDown={handleMouseDown}
+          onMouseEnter={(e) => !isDragging && onHover(e, location)}
+          onMouseLeave={() => !isDragging && onLeave()}
+          title={getTitle()}
+      />
   );
 };
 
@@ -164,14 +184,14 @@ interface LocationItemProps {
 }
 
 const LocationItem: React.FC<LocationItemProps> = ({ location }) => (
-  <div className={styles.locationItem}>
-    <div className={styles.locationName}>{location.name}</div>
-    <div>{location.type}</div>
-    <div>{location.buildings} buildings</div>
-    <div>
-      ({location.x}, {location.y})
+    <div className={styles.locationItem}>
+      <div className={styles.locationName}>{location.name}</div>
+      <div>{location.type}</div>
+      <div>{location.buildings} buildings</div>
+      <div>
+        ({location.x}, {location.y})
+      </div>
     </div>
-  </div>
 );
 
 interface RandomResultProps {
@@ -183,57 +203,19 @@ const RandomResult: React.FC<RandomResultProps> = ({ location, visible }) => {
   if (!visible || !location) return null;
 
   return (
-    <div className={styles.randomResult}>
-      <h3 className={styles.randomResultTitle}>Random Location Selected!</h3>
-      <h4 className={styles.randomResultName}>{location.name}</h4>
-      <p>
-        <strong>Type:</strong> {location.type}
-      </p>
-      <p>
-        <strong>Buildings:</strong> {location.buildings}
-      </p>
-      <p>
-        <strong>Coordinates:</strong> ({location.x}, {location.y})
-      </p>
-    </div>
-  );
-};
-
-interface FileUploadProps {
-  onImageUpload: (imageSrc: string) => void;
-}
-
-const FileUpload: React.FC<FileUploadProps> = ({ onImageUpload }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (result) onImageUpload(result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className={styles.hiddenInput}
-      />
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        className={`${styles.button} ${styles.buttonGreen}`}
-      >
-        Upload Map Image
-      </button>
-    </>
+      <div className={styles.randomResult}>
+        <h3 className={styles.randomResultTitle}>Random Location Selected!</h3>
+        <h4 className={styles.randomResultName}>{location.name}</h4>
+        <p>
+          <strong>Type:</strong> {location.type}
+        </p>
+        <p>
+          <strong>Buildings:</strong> {location.buildings}
+        </p>
+        <p>
+          <strong>Coordinates:</strong> ({location.x}, {location.y})
+        </p>
+      </div>
   );
 };
 
@@ -245,11 +227,11 @@ interface EditFormProps {
 }
 
 const EditForm: React.FC<EditFormProps> = ({
-  location,
-  onLocationChange,
-  onSave,
-  onCancel,
-}) => {
+                                             location,
+                                             onLocationChange,
+                                             onSave,
+                                             onCancel,
+                                           }) => {
   const locationTypes = [
     "Major City",
     "Town",
@@ -261,110 +243,110 @@ const EditForm: React.FC<EditFormProps> = ({
   ];
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
-        <h3 className={styles.modalTitle}>Add/Edit Location</h3>
+      <div className={styles.modalOverlay}>
+        <div className={styles.modal}>
+          <h3 className={styles.modalTitle}>Add/Edit Location</h3>
 
-        <div className={styles.formFields}>
-          <div>
-            <label className={styles.label}>Name:</label>
-            <input
-              type="text"
-              value={location.name || ""}
-              onChange={(e) =>
-                onLocationChange({ ...location, name: e.target.value })
-              }
-              className={styles.input}
-              placeholder="Location name"
-            />
-          </div>
-
-          <div className={styles.coordsContainer}>
-            <div className={styles.coordField}>
-              <label className={styles.label}>X:</label>
+          <div className={styles.formFields}>
+            <div>
+              <label className={styles.label}>Name:</label>
               <input
-                type="number"
-                value={location.x || 0}
-                onChange={(e) =>
-                  onLocationChange({
-                    ...location,
-                    x: parseInt(e.target.value) || 0,
-                  })
-                }
-                className={styles.input}
-                min="0"
-                max="1000"
+                  type="text"
+                  value={location.name || ""}
+                  onChange={(e) =>
+                      onLocationChange({ ...location, name: e.target.value })
+                  }
+                  className={styles.input}
+                  placeholder="Location name"
               />
             </div>
-            <div className={styles.coordField}>
-              <label className={styles.label}>Y:</label>
+
+            <div className={styles.coordsContainer}>
+              <div className={styles.coordField}>
+                <label className={styles.label}>X:</label>
+                <input
+                    type="number"
+                    value={location.x || 0}
+                    onChange={(e) =>
+                        onLocationChange({
+                          ...location,
+                          x: parseInt(e.target.value) || 0,
+                        })
+                    }
+                    className={styles.input}
+                    min="0"
+                    max="1000"
+                />
+              </div>
+              <div className={styles.coordField}>
+                <label className={styles.label}>Y:</label>
+                <input
+                    type="number"
+                    value={location.y || 0}
+                    onChange={(e) =>
+                        onLocationChange({
+                          ...location,
+                          y: parseInt(e.target.value) || 0,
+                        })
+                    }
+                    className={styles.input}
+                    min="0"
+                    max="1000"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={styles.label}>Buildings:</label>
               <input
-                type="number"
-                value={location.y || 0}
-                onChange={(e) =>
-                  onLocationChange({
-                    ...location,
-                    y: parseInt(e.target.value) || 0,
-                  })
-                }
-                className={styles.input}
-                min="0"
-                max="1000"
+                  type="number"
+                  value={location.buildings || 1}
+                  onChange={(e) =>
+                      onLocationChange({
+                        ...location,
+                        buildings: parseInt(e.target.value) || 1,
+                      })
+                  }
+                  className={styles.input}
+                  min="1"
               />
+            </div>
+
+            <div>
+              <label className={styles.label}>Type:</label>
+              <select
+                  value={location.type || "Village"}
+                  onChange={(e) =>
+                      onLocationChange({ ...location, type: e.target.value })
+                  }
+                  className={styles.select}
+              >
+                {locationTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div>
-            <label className={styles.label}>Buildings:</label>
-            <input
-              type="number"
-              value={location.buildings || 1}
-              onChange={(e) =>
-                onLocationChange({
-                  ...location,
-                  buildings: parseInt(e.target.value) || 1,
-                })
-              }
-              className={styles.input}
-              min="1"
-            />
-          </div>
-
-          <div>
-            <label className={styles.label}>Type:</label>
-            <select
-              value={location.type || "Village"}
-              onChange={(e) =>
-                onLocationChange({ ...location, type: e.target.value })
-              }
-              className={styles.select}
+          <div className={styles.modalButtons}>
+            <button
+                onClick={onSave}
+                disabled={!location.name}
+                className={`${styles.button} ${styles.buttonGreen} ${styles.flexButton} ${!location.name ? styles.disabled : ""}`}
             >
-              {locationTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              Save
+            </button>
+            <button
+                onClick={onCancel}
+                className={`${styles.button} ${styles.buttonGray} ${styles.flexButton}`}
+            >
+              Cancel
+            </button>
           </div>
-        </div>
-
-        <div className={styles.modalButtons}>
-          <button
-            onClick={onSave}
-            disabled={!location.name}
-            className={`${styles.button} ${styles.buttonGreen} ${styles.flexButton} ${!location.name ? styles.disabled : ""}`}
-          >
-            Save
-          </button>
-          <button
-            onClick={onCancel}
-            className={`${styles.button} ${styles.buttonGray} ${styles.flexButton}`}
-          >
-            Cancel
-          </button>
         </div>
       </div>
-    </div>
   );
 };
 
@@ -378,82 +360,189 @@ const MapViewer: React.FC = () => {
     location: null,
     position: { x: 0, y: 0 },
   });
-  const [mapImage, setMapImage] = useState<string>(
-    initialMapData.game_map.image,
+  const [mapImage, _setMapImage] = useState<string>(
+      initialMapData.game_map.image,
   );
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [editingLocation, setEditingLocation] =
-    useState<Partial<Location> | null>(null);
+      useState<Partial<Location> | null>(null);
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
+  const [dragState, setDragState] = useState<DragState>({
+    isDragging: false,
+    dragIndex: null,
+    startPos: { x: 0, y: 0 },
+    offset: { x: 0, y: 0 },
+  });
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const currentMapData = mapData[currentMap];
   const filteredLocations = currentMapData.locations.filter(
-    (loc) => loc.buildings >= minBuildings,
+      (loc) => loc.buildings >= minBuildings,
   );
   const selectedLocation =
-    selectedMarker !== null ? currentMapData.locations[selectedMarker] : null;
+      selectedMarker !== null ? currentMapData.locations[selectedMarker] : null;
 
   const handleMarkerSelect = useCallback(
-    (index: number) => {
-      setSelectedMarker(selectedMarker === index ? null : index);
-    },
-    [selectedMarker],
+      (index: number) => {
+        if (!dragState.isDragging) {
+          setSelectedMarker(selectedMarker === index ? null : index);
+        }
+      },
+      [selectedMarker, dragState.isDragging],
   );
 
   const handleMarkerHover = useCallback(
-    (e: React.MouseEvent, location: Location) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setTooltip({
-        visible: true,
-        location,
-        position: {
-          x: rect.left + window.scrollX,
-          y: rect.top + window.scrollY,
-        },
-      });
-    },
-    [],
+      (e: React.MouseEvent, location: Location) => {
+        if (!dragState.isDragging) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setTooltip({
+            visible: true,
+            location,
+            position: {
+              x: rect.left + window.scrollX,
+              y: rect.top + window.scrollY,
+            },
+          });
+        }
+      },
+      [dragState.isDragging],
   );
 
   const handleMarkerLeave = useCallback(() => {
-    setTooltip({ visible: false, location: null, position: { x: 0, y: 0 } });
-  }, []);
+    if (!dragState.isDragging) {
+      setTooltip({ visible: false, location: null, position: { x: 0, y: 0 } });
+    }
+  }, [dragState.isDragging]);
 
   const handleMarkerDelete = useCallback(
-    (index: number) => {
-      setMapData((prev) => ({
-        ...prev,
-        [currentMap]: {
-          ...prev[currentMap],
-          locations: prev[currentMap].locations.filter((_, i) => i !== index),
-        },
-      }));
-      setSelectedMarker(null);
-    },
-    [currentMap],
+      (index: number) => {
+        setMapData((prev) => ({
+          ...prev,
+          [currentMap]: {
+            ...prev[currentMap],
+            locations: prev[currentMap].locations.filter((_, i) => i !== index),
+          },
+        }));
+        setSelectedMarker(null);
+      },
+      [currentMap],
   );
 
-  const handleMapClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isEditMode) return;
+  const handleDragStart = useCallback(
+      (e: React.MouseEvent, index: number) => {
+        const mapContainer = mapContainerRef.current;
+        if (!mapContainer) return;
 
-      const img = e.currentTarget.querySelector("img");
-      if (!img) return;
+        const img = mapContainer.querySelector("img");
+        if (!img) return;
 
-      const imgRect = img.getBoundingClientRect();
-      const x = Math.round(((e.clientX - imgRect.left) / imgRect.width) * 1000);
-      const y = Math.round(((e.clientY - imgRect.top) / imgRect.height) * 1000);
+        const imgRect = img.getBoundingClientRect();
+        const location = currentMapData.locations[index];
 
-      setEditingLocation({
-        name: "",
-        x,
-        y,
-        buildings: 1,
-        type: "Village",
+        // Calculate the offset from the mouse position to the marker position
+        const markerScreenX = imgRect.left + (location.x / 1000) * imgRect.width;
+        const markerScreenY = imgRect.top + (location.y / 1000) * imgRect.height;
+
+        setDragState({
+          isDragging: true,
+          dragIndex: index,
+          startPos: { x: e.clientX, y: e.clientY },
+          offset: {
+            x: e.clientX - markerScreenX,
+            y: e.clientY - markerScreenY,
+          },
+        });
+
+        // Hide tooltip during drag
+        setTooltip({ visible: false, location: null, position: { x: 0, y: 0 } });
+      },
+      [currentMapData.locations],
+  );
+
+  const handleMouseMove = useCallback(
+      (e: MouseEvent) => {
+        if (!dragState.isDragging || dragState.dragIndex === null) return;
+
+        const mapContainer = mapContainerRef.current;
+        if (!mapContainer) return;
+
+        const img = mapContainer.querySelector("img");
+        if (!img) return;
+
+        const imgRect = img.getBoundingClientRect();
+
+        // Calculate new position relative to the image
+        const x = Math.max(0, Math.min(1000,
+            ((e.clientX - dragState.offset.x - imgRect.left) / imgRect.width) * 1000
+        ));
+        const y = Math.max(0, Math.min(1000,
+            ((e.clientY - dragState.offset.y - imgRect.top) / imgRect.height) * 1000
+        ));
+
+        // Update the location in real-time
+        setMapData((prev) => ({
+          ...prev,
+          [currentMap]: {
+            ...prev[currentMap],
+            locations: prev[currentMap].locations.map((loc, index) =>
+                index === dragState.dragIndex
+                    ? { ...loc, x: Math.round(x), y: Math.round(y) }
+                    : loc
+            ),
+          },
+        }));
+      },
+      [dragState, currentMap],
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (dragState.isDragging) {
+      setDragState({
+        isDragging: false,
+        dragIndex: null,
+        startPos: { x: 0, y: 0 },
+        offset: { x: 0, y: 0 },
       });
-      setShowEditForm(true);
-    },
-    [isEditMode],
+    }
+  }, [dragState.isDragging]);
+
+  // Add global mouse event listeners for dragging
+  React.useEffect(() => {
+    if (dragState.isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none'; // Prevent text selection during drag
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.userSelect = '';
+      };
+    }
+  }, [dragState.isDragging, handleMouseMove, handleMouseUp]);
+
+  const handleMapClick = useCallback(
+      (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isEditMode || dragState.isDragging) return;
+
+        const img = e.currentTarget.querySelector("img");
+        if (!img) return;
+
+        const imgRect = img.getBoundingClientRect();
+        const x = Math.round(((e.clientX - imgRect.left) / imgRect.width) * 1000);
+        const y = Math.round(((e.clientY - imgRect.top) / imgRect.height) * 1000);
+
+        setEditingLocation({
+          name: "",
+          x,
+          y,
+          buildings: 1,
+          type: "Village",
+        });
+        setShowEditForm(true);
+      },
+      [isEditMode, dragState.isDragging],
   );
 
   const handleLocationSave = useCallback(() => {
@@ -491,7 +580,7 @@ const MapViewer: React.FC = () => {
     }
 
     const randomLocation =
-      filteredLocations[Math.floor(Math.random() * filteredLocations.length)];
+        filteredLocations[Math.floor(Math.random() * filteredLocations.length)];
     const locationIndex = currentMapData.locations.indexOf(randomLocation);
     setSelectedMarker(locationIndex);
   }, [filteredLocations, currentMapData.locations]);
@@ -500,19 +589,6 @@ const MapViewer: React.FC = () => {
     setSelectedMarker(null);
   }, []);
 
-  const handleImageUpload = useCallback(
-    (imageSrc: string) => {
-      setMapImage(imageSrc);
-      setMapData((prev) => ({
-        ...prev,
-        [currentMap]: {
-          ...prev[currentMap],
-          image: imageSrc,
-        },
-      }));
-    },
-    [currentMap],
-  );
 
   const exportMapData = useCallback(() => {
     const dataStr = JSON.stringify(mapData, null, 2);
@@ -531,154 +607,161 @@ const MapViewer: React.FC = () => {
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);
     setSelectedMarker(null);
+    // Reset drag state when toggling edit mode
+    setDragState({
+      isDragging: false,
+      dragIndex: null,
+      startPos: { x: 0, y: 0 },
+      offset: { x: 0, y: 0 },
+    });
   }, []);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.maxWidth}>
-        {/* Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Interactive Map Viewer</h1>
-          <p className={styles.subtitle}>
-            Select a map, filter locations by building count, and discover
-            random locations
-          </p>
-        </div>
-
-        {/* Controls */}
-        <div className={styles.controls}>
-          <div className={styles.controlGroup}>
-            <label className={styles.controlLabel}>Map:</label>
-            <select
-              value={currentMap}
-              onChange={(e) => setCurrentMap(e.target.value)}
-              className={styles.select}
-            >
-              {Object.keys(mapData).map((key) => (
-                <option key={key} value={key}>
-                  {mapData[key].name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={styles.controlGroup}>
-            <label className={styles.controlLabel}>Min Buildings:</label>
-            <input
-              type="number"
-              value={minBuildings}
-              onChange={(e) => setMinBuildings(parseInt(e.target.value) || 1)}
-              min="1"
-              max="100"
-              className={`${styles.input} ${styles.numberInput}`}
-            />
-          </div>
-
-          <div className={styles.controlGroup}>
-            <button
-              onClick={selectRandomLocation}
-              disabled={isEditMode}
-              className={`${styles.button} ${styles.buttonGreen} ${isEditMode ? styles.disabled : ""}`}
-            >
-              Get Random Location
-            </button>
-            <button
-              onClick={clearSelection}
-              className={`${styles.button} ${styles.buttonGray}`}
-            >
-              Clear Selection
-            </button>
-          </div>
-
-          <div className={styles.controlGroup}>
-            <FileUpload onImageUpload={handleImageUpload} />
-          </div>
-
-          <div className={styles.controlGroup}>
-            <button
-              onClick={toggleEditMode}
-              className={`${styles.button} ${isEditMode ? styles.buttonYellow : styles.buttonBlue}`}
-            >
-              {isEditMode ? "Exit Edit Mode" : "Edit Mode"}
-            </button>
-            <button
-              onClick={exportMapData}
-              className={`${styles.button} ${styles.buttonPurple}`}
-            >
-              Export JSON
-            </button>
-          </div>
-        </div>
-
-        {/* Edit Mode Instructions */}
-        {isEditMode && (
-          <div className={styles.editInstructions}>
-            <p>
-              <strong>Edit Mode Active:</strong> Click on the map to add new
-              locations. Shift+Click on markers to delete them.
+      <div className={styles.container}>
+        <div className={styles.maxWidth}>
+          {/* Header */}
+          <div className={styles.header}>
+            <h1 className={styles.title}>Interactive Map Viewer</h1>
+            <p className={styles.subtitle}>
+              Select a map, filter locations by building count, and discover
+              random locations
             </p>
           </div>
-        )}
 
-        {/* Map Container */}
-        <div
-          className={`${styles.mapContainer} ${isEditMode ? styles.editCursor : ""}`}
-          onClick={handleMapClick}
-        >
-          <img src={mapImage} alt="Map" className={styles.mapImage} />
+          {/* Controls */}
+          <div className={styles.controls}>
+            <div className={styles.controlGroup}>
+              <label className={styles.controlLabel}>Map:</label>
+              <select
+                  value={currentMap}
+                  onChange={(e) => setCurrentMap(e.target.value)}
+                  className={styles.select}
+              >
+                {Object.keys(mapData).map((key) => (
+                    <option key={key} value={key}>
+                      {mapData[key].name}
+                    </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Markers */}
-          {currentMapData.locations.map((location, index) => (
-            <Marker
-              key={index}
-              location={location}
-              index={index}
-              isSelected={selectedMarker === index}
-              isEditMode={isEditMode}
-              onSelect={handleMarkerSelect}
-              onHover={handleMarkerHover}
-              onLeave={handleMarkerLeave}
-              onDelete={handleMarkerDelete}
-            />
-          ))}
-        </div>
+            <div className={styles.controlGroup}>
+              <label className={styles.controlLabel}>Min Buildings:</label>
+              <input
+                  type="number"
+                  value={minBuildings}
+                  onChange={(e) => setMinBuildings(parseInt(e.target.value) || 1)}
+                  min="1"
+                  max="100"
+                  className={`${styles.input} ${styles.numberInput}`}
+              />
+            </div>
 
-        {/* Tooltip */}
-        <Tooltip
-          location={tooltip.location}
-          position={tooltip.position}
-          visible={tooltip.visible}
-        />
+            <div className={styles.controlGroup}>
+              <button
+                  onClick={selectRandomLocation}
+                  disabled={isEditMode}
+                  className={`${styles.button} ${styles.buttonGreen} ${isEditMode ? styles.disabled : ""}`}
+              >
+                Get Random Location
+              </button>
+              <button
+                  onClick={clearSelection}
+                  className={`${styles.button} ${styles.buttonGray}`}
+              >
+                Clear Selection
+              </button>
+            </div>
 
-        {/* Edit Form Modal */}
-        {showEditForm && editingLocation && (
-          <EditForm
-            location={editingLocation}
-            onLocationChange={setEditingLocation}
-            onSave={handleLocationSave}
-            onCancel={handleLocationCancel}
-          />
-        )}
+            <div className={styles.controlGroup}>
+              <button
+                  onClick={toggleEditMode}
+                  className={`${styles.button} ${isEditMode ? styles.buttonYellow : styles.buttonBlue}`}
+              >
+                {isEditMode ? "Exit Edit Mode" : "Edit Mode"}
+              </button>
+              <button
+                  onClick={exportMapData}
+                  className={`${styles.button} ${styles.buttonPurple}`}
+              >
+                Export JSON
+              </button>
+            </div>
+          </div>
 
-        {/* Random Result */}
-        <RandomResult
-          location={selectedLocation}
-          visible={selectedMarker !== null && !isEditMode}
-        />
+          {/* Edit Mode Instructions */}
+          {isEditMode && (
+              <div className={styles.editInstructions}>
+                <p>
+                  <strong>Edit Mode Active:</strong> Click on the map to add new
+                  locations. Drag markers to move them. Shift+Click on markers to delete them.
+                </p>
+              </div>
+          )}
 
-        {/* Info Panel */}
-        <div className={styles.infoPanel}>
-          <h3 className={styles.infoPanelTitle}>
-            All Locations ({filteredLocations.length})
-          </h3>
-          <div className={styles.locationsGrid}>
-            {filteredLocations.map((location, index) => (
-              <LocationItem key={index} location={location} />
+          {/* Map Container */}
+          <div
+              ref={mapContainerRef}
+              className={`${styles.mapContainer} ${isEditMode ? styles.editCursor : ""}`}
+              onClick={handleMapClick}
+              style={{ cursor: dragState.isDragging ? 'grabbing' : 'default' }}
+          >
+            <img src={mapImage} alt="Map" className={styles.mapImage} />
+
+            {/* Markers */}
+            {currentMapData.locations.map((location, index) => (
+                <Marker
+                    key={index}
+                    location={location}
+                    index={index}
+                    isSelected={selectedMarker === index}
+                    isEditMode={isEditMode}
+                    isDragging={dragState.isDragging && dragState.dragIndex === index}
+                    onSelect={handleMarkerSelect}
+                    onHover={handleMarkerHover}
+                    onLeave={handleMarkerLeave}
+                    onDelete={handleMarkerDelete}
+                    onDragStart={handleDragStart}
+                />
             ))}
+          </div>
+
+          {/* Tooltip */}
+          <Tooltip
+              location={tooltip.location}
+              position={tooltip.position}
+              visible={tooltip.visible}
+          />
+
+          {/* Edit Form Modal */}
+          {showEditForm && editingLocation && (
+              <EditForm
+                  location={editingLocation}
+                  onLocationChange={setEditingLocation}
+                  onSave={handleLocationSave}
+                  onCancel={handleLocationCancel}
+              />
+          )}
+
+          {/* Random Result */}
+          <RandomResult
+              location={selectedLocation}
+              visible={selectedMarker !== null && !isEditMode}
+          />
+
+          {/* Info Panel */}
+          <div className={styles.infoPanel}>
+            <h3 className={styles.infoPanelTitle}>
+              All Locations ({filteredLocations.length})
+            </h3>
+            <div className={styles.locationsGrid}>
+              {filteredLocations.map((location, index) => (
+                  <LocationItem key={index} location={location} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
   );
 };
 
