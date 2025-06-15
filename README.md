@@ -1,1 +1,3 @@
-# Pubg drop selector. Vibed with claude.
+# Pubg drop selector. 
+
+Vibed with claude.
