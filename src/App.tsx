@@ -827,7 +827,7 @@ const MapViewer: React.FC = () => {
           )}
 
           <img
-            src={"pubg-drop-selector/" + mapData[currentMap].image}
+            src={mapData[currentMap].image}
             alt="Map"
             className={styles.mapImage}
             onLoad={(e) => {
