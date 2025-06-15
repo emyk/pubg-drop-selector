@@ -127,7 +127,7 @@ const Marker: React.FC<MarkerProps> = ({
     if (distance < 5) {
       if (isEditMode && onEdit) {
         e.stopPropagation();
-        console.log('redigerer', index, location)
+        console.log("redigerer", index, location);
         onEdit(index);
       }
     }
@@ -758,12 +758,19 @@ const MapViewer: React.FC = () => {
           </div>
         </div>
 
-        {isEditMode && (
+        {isEditMode ? (
           <div className={styles.editInstructions}>
             <p>
               <strong>Edit Mode Active:</strong> Click on the map to add new
               locations. Click on markers to edit them. Drag markers to move
               them. Shift+Click on markers to delete them.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.editInstructions}>
+            <p>
+              <strong>Tip:</strong> Hold ctrl and click to draw a flight path.
+              Drops will be chosen along the path.
             </p>
           </div>
         )}
