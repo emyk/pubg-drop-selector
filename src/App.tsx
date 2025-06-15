@@ -523,7 +523,7 @@ const MapViewer: React.FC = () => {
         const x = ((e.clientX - imgRect.left) / imgRect.width) * 1000;
         const y = ((e.clientY - imgRect.top) / imgRect.height) * 1000;
 
-        if (!drawLine.start) {
+        if (!drawLine.start || (drawLine.start && drawLine.end)) {
           setDrawLine({ start: { x, y }, end: null });
         } else {
           setDrawLine((prev) => ({ ...prev, end: { x, y } }));
@@ -810,8 +810,15 @@ const MapViewer: React.FC = () => {
                     }
                     y2={mapCoordToPixels({ x: 25, y: 25 }).y}
                     stroke="red"
-                    strokeWidth={4}
+                    strokeWidth={20}
                   />
+                  <text
+                    style={{ fill: "white" }}
+                    x={mapCoordToPixels({ x: 25, y: 30 }).x}
+                    y={mapCoordToPixels({ x: 25, y: 30 }).y}
+                  >
+                    Max drop dist.
+                  </text>
                   <line
                     x1={mapCoordToPixels(drawLine.start).x}
                     y1={mapCoordToPixels(drawLine.start).y}
