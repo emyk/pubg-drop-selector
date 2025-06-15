@@ -7,7 +7,6 @@ interface Location {
   x: number;
   y: number;
   buildings: number;
-  type: string;
 }
 
 interface MapData {
@@ -35,9 +34,9 @@ interface DragState {
 }
 
 // Map and location data - easily editable
-const initialMapData: MapDataCollection = {
-  game_map: {
-    name: "Game Map",
+const initialMapData = {
+  rondo: {
+    name: "Rondo",
     image: "rondo.png",
     locations: [
       {
@@ -45,41 +44,38 @@ const initialMapData: MapDataCollection = {
         x: 850,
         y: 750,
         buildings: 45,
-        type: "Major City",
       },
-      { name: "Jao Tin", x: 200, y: 400, buildings: 28, type: "Town" },
-      { name: "Hemoy Town", x: 900, y: 200, buildings: 23, type: "Town" },
-      { name: "Nan Chuan", x: 350, y: 150, buildings: 18, type: "Settlement" },
-      { name: "Dan Ching", x: 500, y: 700, buildings: 18, type: "Settlement" },
-      { name: "Bin Jiang", x: 250, y: 900, buildings: 15, type: "Settlement" },
-      { name: "Rai An", x: 500, y: 150, buildings: 13, type: "Village" },
-      { name: "Mu Ho Ben", x: 750, y: 200, buildings: 13, type: "Village" },
-      { name: "Yu Lin", x: 300, y: 550, buildings: 13, type: "Village" },
-      { name: "Hung Shan", x: 400, y: 800, buildings: 13, type: "Village" },
-      { name: "Bei Li", x: 150, y: 250, buildings: 10, type: "Village" },
-      { name: "Kun Xin", x: 650, y: 150, buildings: 10, type: "Village" },
-      { name: "Fong Tun", x: 150, y: 650, buildings: 10, type: "Village" },
-      { name: "Mey Ran", x: 700, y: 450, buildings: 10, type: "Village" },
-      { name: "Min Ju", x: 100, y: 150, buildings: 8, type: "Village" },
+      { name: "Jao Tin", x: 200, y: 400, buildings: 28 },
+      { name: "Hemoy Town", x: 900, y: 200, buildings: 23 },
+      { name: "Nan Chuan", x: 350, y: 150, buildings: 18 },
+      { name: "Dan Ching", x: 500, y: 700, buildings: 18 },
+      { name: "Bin Jiang", x: 250, y: 900, buildings: 15 },
+      { name: "Rai An", x: 500, y: 150, buildings: 13 },
+      { name: "Mu Ho Ben", x: 750, y: 200, buildings: 13 },
+      { name: "Yu Lin", x: 300, y: 550, buildings: 13 },
+      { name: "Hung Shan", x: 400, y: 800, buildings: 13 },
+      { name: "Bei Li", x: 150, y: 250, buildings: 10 },
+      { name: "Kun Xin", x: 650, y: 150, buildings: 10 },
+      { name: "Fong Tun", x: 150, y: 650, buildings: 10 },
+      { name: "Mey Ran", x: 700, y: 450, buildings: 10 },
+      { name: "Min Ju", x: 100, y: 150, buildings: 8 },
       {
         name: "Neox Factory",
         x: 500,
         y: 500,
         buildings: 7,
-        type: "Industrial",
       },
       {
         name: "Tin Long Garden",
         x: 550,
         y: 850,
         buildings: 7,
-        type: "Settlement",
       },
-      { name: "Test Track", x: 450, y: 450, buildings: 4, type: "Facility" },
-      { name: "Stadium", x: 250, y: 350, buildings: 1, type: "Special" },
+      { name: "Test Track", x: 450, y: 450, buildings: 4 },
+      { name: "Stadium", x: 250, y: 350, buildings: 1 },
     ],
   },
-};
+} as const satisfies MapDataCollection;
 
 interface TooltipProps {
   location: Location | null;
@@ -99,7 +95,6 @@ const Tooltip: React.FC<TooltipProps> = ({ location, position, visible }) => {
       }}
     >
       <div className={styles.tooltipName}>{location.name}</div>
-      <div>{location.type}</div>
       <div>{location.buildings} buildings</div>
       <div>
         ({location.x}, {location.y})
@@ -119,6 +114,7 @@ interface MarkerProps {
   onLeave: () => void;
   onDelete?: (index: number) => void;
   onDragStart?: (e: React.MouseEvent, index: number) => void;
+  onEdit?: (index: number) => void;
 }
 
 const Marker: React.FC<MarkerProps> = ({
@@ -132,7 +128,13 @@ const Marker: React.FC<MarkerProps> = ({
   onLeave,
   onDelete,
   onDragStart,
+  onEdit,
 }) => {
+  const [mouseDownPos, setMouseDownPos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
   const markerClasses = [
     styles.marker,
     isSelected ? styles.markerSelected : styles.markerNormal,
@@ -153,7 +155,13 @@ const Marker: React.FC<MarkerProps> = ({
     if (isEditMode && e.shiftKey && onDelete) {
       e.stopPropagation();
       onDelete(index);
-    } else if (isEditMode && onDragStart) {
+      return;
+    }
+
+    // Store mouse position for drag detection
+    setMouseDownPos({ x: e.clientX, y: e.clientY });
+
+    if (isEditMode && onDragStart) {
       e.stopPropagation();
       onDragStart(e, index);
     } else {
@@ -161,9 +169,29 @@ const Marker: React.FC<MarkerProps> = ({
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (!mouseDownPos) return;
+
+    // Calculate distance moved since mouse down
+    const distance = Math.sqrt(
+      Math.pow(e.clientX - mouseDownPos.x, 2) +
+        Math.pow(e.clientY - mouseDownPos.y, 2),
+    );
+
+    // If mouse didn't move much (less than 5 pixels), treat as click
+    if (distance < 5) {
+      if (isEditMode && onEdit) {
+        e.stopPropagation();
+        onEdit(index);
+      }
+    }
+
+    setMouseDownPos(null);
+  };
+
   const getTitle = () => {
     if (isEditMode) {
-      return "Drag to move, Shift+Click to delete, Click to select";
+      return "Click to edit, Drag to move, Shift+Click to delete";
     }
     return "Click to select";
   };
@@ -173,6 +201,7 @@ const Marker: React.FC<MarkerProps> = ({
       className={markerClasses}
       style={style}
       onMouseDown={handleMouseDown}
+      onClick={handleClick}
       onMouseEnter={(e) => !isDragging && onHover(e, location)}
       onMouseLeave={() => !isDragging && onLeave()}
       title={getTitle()}
@@ -187,7 +216,6 @@ interface LocationItemProps {
 const LocationItem: React.FC<LocationItemProps> = ({ location }) => (
   <div className={styles.locationItem}>
     <div className={styles.locationName}>{location.name}</div>
-    <div>{location.type}</div>
     <div>{location.buildings} buildings</div>
     <div>
       ({location.x}, {location.y})
@@ -208,9 +236,6 @@ const RandomResult: React.FC<RandomResultProps> = ({ location, visible }) => {
       <h3 className={styles.randomResultTitle}>Random Location Selected!</h3>
       <h4 className={styles.randomResultName}>{location.name}</h4>
       <p>
-        <strong>Type:</strong> {location.type}
-      </p>
-      <p>
         <strong>Buildings:</strong> {location.buildings}
       </p>
       <p>
@@ -220,49 +245,12 @@ const RandomResult: React.FC<RandomResultProps> = ({ location, visible }) => {
   );
 };
 
-interface FileUploadProps {
-  onImageUpload: (imageSrc: string) => void;
-}
-
-const FileUpload: React.FC<FileUploadProps> = ({ onImageUpload }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (result) onImageUpload(result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  return (
-    <>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className={styles.hiddenInput}
-      />
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        className={`${styles.button} ${styles.buttonGreen}`}
-      >
-        Upload Map Image
-      </button>
-    </>
-  );
-};
-
 interface EditFormProps {
   location: Partial<Location>;
   onLocationChange: (location: Partial<Location>) => void;
   onSave: () => void;
   onCancel: () => void;
+  isEditing?: boolean;
 }
 
 const EditForm: React.FC<EditFormProps> = ({
@@ -270,21 +258,14 @@ const EditForm: React.FC<EditFormProps> = ({
   onLocationChange,
   onSave,
   onCancel,
+  isEditing = false,
 }) => {
-  const locationTypes = [
-    "Major City",
-    "Town",
-    "Settlement",
-    "Village",
-    "Industrial",
-    "Facility",
-    "Special",
-  ];
-
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
-        <h3 className={styles.modalTitle}>Add/Edit Location</h3>
+        <h3 className={styles.modalTitle}>
+          {isEditing ? "Edit Location" : "Add New Location"}
+        </h3>
 
         <div className={styles.formFields}>
           <div>
@@ -305,13 +286,8 @@ const EditForm: React.FC<EditFormProps> = ({
               <label className={styles.label}>X:</label>
               <input
                 type="number"
+                readOnly
                 value={location.x || 0}
-                onChange={(e) =>
-                  onLocationChange({
-                    ...location,
-                    x: parseInt(e.target.value) || 0,
-                  })
-                }
                 className={styles.input}
                 min="0"
                 max="1000"
@@ -321,13 +297,8 @@ const EditForm: React.FC<EditFormProps> = ({
               <label className={styles.label}>Y:</label>
               <input
                 type="number"
+                readOnly
                 value={location.y || 0}
-                onChange={(e) =>
-                  onLocationChange({
-                    ...location,
-                    y: parseInt(e.target.value) || 0,
-                  })
-                }
                 className={styles.input}
                 min="0"
                 max="1000"
@@ -350,23 +321,6 @@ const EditForm: React.FC<EditFormProps> = ({
               min="1"
             />
           </div>
-
-          <div>
-            <label className={styles.label}>Type:</label>
-            <select
-              value={location.type || "Village"}
-              onChange={(e) =>
-                onLocationChange({ ...location, type: e.target.value })
-              }
-              className={styles.select}
-            >
-              {locationTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
 
         <div className={styles.modalButtons}>
@@ -375,7 +329,7 @@ const EditForm: React.FC<EditFormProps> = ({
             disabled={!location.name}
             className={`${styles.button} ${styles.buttonGreen} ${styles.flexButton} ${!location.name ? styles.disabled : ""}`}
           >
-            Save
+            {isEditing ? "Update" : "Save"}
           </button>
           <button
             onClick={onCancel}
@@ -391,7 +345,7 @@ const EditForm: React.FC<EditFormProps> = ({
 
 const MapViewer: React.FC = () => {
   const [mapData, setMapData] = useState<MapDataCollection>(initialMapData);
-  const [currentMap, setCurrentMap] = useState<string>("game_map");
+  const [currentMap, setCurrentMap] = useState<keyof typeof mapData>("rondo");
   const [minBuildings, setMinBuildings] = useState<number>(1);
   const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -399,12 +353,10 @@ const MapViewer: React.FC = () => {
     location: null,
     position: { x: 0, y: 0 },
   });
-  const [mapImage, setMapImage] = useState<string>(
-    initialMapData.game_map.image,
-  );
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [editingLocation, setEditingLocation] =
     useState<Partial<Location> | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
@@ -430,6 +382,16 @@ const MapViewer: React.FC = () => {
       }
     },
     [selectedMarker, dragState.isDragging],
+  );
+
+  const handleMarkerEdit = useCallback(
+    (index: number) => {
+      const location = currentMapData.locations[index];
+      setEditingLocation({ ...location });
+      setEditingIndex(index);
+      setShowEditForm(true);
+    },
+    [currentMapData.locations],
   );
 
   const handleMarkerHover = useCallback(
@@ -596,8 +558,8 @@ const MapViewer: React.FC = () => {
         x,
         y,
         buildings: 1,
-        type: "Village",
       });
+      setEditingIndex(null); // null means we're adding a new location
       setShowEditForm(true);
     },
     [isEditMode, dragState.isDragging, dragState.justFinishedDrag],
@@ -611,24 +573,41 @@ const MapViewer: React.FC = () => {
       x: editingLocation.x || 0,
       y: editingLocation.y || 0,
       buildings: editingLocation.buildings || 1,
-      type: editingLocation.type || "Village",
     };
 
-    setMapData((prev) => ({
-      ...prev,
-      [currentMap]: {
-        ...prev[currentMap],
-        locations: [...prev[currentMap].locations, newLocation],
-      },
-    }));
+    setMapData((prev) => {
+      if (editingIndex !== null) {
+        // Edit existing location
+        return {
+          ...prev,
+          [currentMap]: {
+            ...prev[currentMap],
+            locations: prev[currentMap].locations.map((loc, index) =>
+              index === editingIndex ? newLocation : loc,
+            ),
+          },
+        };
+      } else {
+        // Add new location
+        return {
+          ...prev,
+          [currentMap]: {
+            ...prev[currentMap],
+            locations: [...prev[currentMap].locations, newLocation],
+          },
+        };
+      }
+    });
 
     setShowEditForm(false);
     setEditingLocation(null);
-  }, [editingLocation, currentMap]);
+    setEditingIndex(null);
+  }, [editingLocation, editingIndex, currentMap]);
 
   const handleLocationCancel = useCallback(() => {
     setShowEditForm(false);
     setEditingLocation(null);
+    setEditingIndex(null);
   }, []);
 
   const selectRandomLocation = useCallback(() => {
@@ -646,20 +625,6 @@ const MapViewer: React.FC = () => {
   const clearSelection = useCallback(() => {
     setSelectedMarker(null);
   }, []);
-
-  const handleImageUpload = useCallback(
-    (imageSrc: string) => {
-      setMapImage(imageSrc);
-      setMapData((prev) => ({
-        ...prev,
-        [currentMap]: {
-          ...prev[currentMap],
-          image: imageSrc,
-        },
-      }));
-    },
-    [currentMap],
-  );
 
   const exportMapData = useCallback(() => {
     const dataStr = JSON.stringify(mapData, null, 2);
@@ -693,7 +658,7 @@ const MapViewer: React.FC = () => {
       <div className={styles.maxWidth}>
         {/* Header */}
         <div className={styles.header}>
-          <h1 className={styles.title}>Interactive Map Viewer</h1>
+          <h1 className={styles.title}>PUBG Drop Selector</h1>
           <p className={styles.subtitle}>
             Select a map, filter locations by building count, and discover
             random locations
@@ -746,10 +711,6 @@ const MapViewer: React.FC = () => {
           </div>
 
           <div className={styles.controlGroup}>
-            <FileUpload onImageUpload={handleImageUpload} />
-          </div>
-
-          <div className={styles.controlGroup}>
             <button
               onClick={toggleEditMode}
               className={`${styles.button} ${isEditMode ? styles.buttonYellow : styles.buttonBlue}`}
@@ -770,8 +731,8 @@ const MapViewer: React.FC = () => {
           <div className={styles.editInstructions}>
             <p>
               <strong>Edit Mode Active:</strong> Click on the map to add new
-              locations. Drag markers to move them. Shift+Click on markers to
-              delete them.
+              locations. Click on markers to edit them. Drag markers to move
+              them. Shift+Click on markers to delete them.
             </p>
           </div>
         )}
@@ -783,7 +744,11 @@ const MapViewer: React.FC = () => {
           onClick={handleMapClick}
           style={{ cursor: dragState.isDragging ? "grabbing" : "default" }}
         >
-          <img src={mapImage} alt="Map" className={styles.mapImage} />
+          <img
+            src={mapData[currentMap].image}
+            alt="Map"
+            className={styles.mapImage}
+          />
 
           {/* Markers */}
           {currentMapData.locations.map((location, index) => (
@@ -799,6 +764,7 @@ const MapViewer: React.FC = () => {
               onLeave={handleMarkerLeave}
               onDelete={handleMarkerDelete}
               onDragStart={handleDragStart}
+              onEdit={handleMarkerEdit}
             />
           ))}
         </div>
@@ -817,6 +783,7 @@ const MapViewer: React.FC = () => {
             onLocationChange={setEditingLocation}
             onSave={handleLocationSave}
             onCancel={handleLocationCancel}
+            isEditing={editingIndex !== null}
           />
         )}
 
