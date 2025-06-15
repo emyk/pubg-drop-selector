@@ -1,0 +1,428 @@
+{
+  "rondo": {
+    "name": "Rondo",
+    "image": "rondo.png",
+    "locations": [
+      {
+        "name": "Jao Tin",
+        "x": 203,
+        "y": 415,
+        "size": "L"
+      },
+      {
+        "name": "Bei Li",
+        "x": 143,
+        "y": 221,
+        "size": "L"
+      },
+      {
+        "name": "Fong Tun",
+        "x": 124,
+        "y": 626,
+        "size": "L"
+      },
+      {
+        "name": "Lan Po",
+        "x": 170,
+        "y": 719,
+        "size": "L"
+      },
+      {
+        "name": "Long Ho",
+        "x": 173,
+        "y": 868,
+        "size": "L"
+      },
+      {
+        "name": "Rin Jiang",
+        "x": 335,
+        "y": 877,
+        "size": "L"
+      },
+      {
+        "name": "Hung Shan",
+        "x": 455,
+        "y": 789,
+        "size": "L"
+      },
+      {
+        "name": "Yu Lin",
+        "x": 374,
+        "y": 550,
+        "size": "L"
+      },
+      {
+        "name": "Dan Ching",
+        "x": 615,
+        "y": 641,
+        "size": "L"
+      },
+      {
+        "name": "Tin Long Garden",
+        "x": 609,
+        "y": 890,
+        "size": "L"
+      },
+      {
+        "name": "Tu Ling",
+        "x": 693,
+        "y": 696,
+        "size": "L"
+      },
+      {
+        "name": "Jadena City",
+        "x": 886,
+        "y": 712,
+        "size": "L"
+      },
+      {
+        "name": "Ven Gu",
+        "x": 783,
+        "y": 552,
+        "size": "L"
+      },
+      {
+        "name": "Mey Ran",
+        "x": 804,
+        "y": 424,
+        "size": "L"
+      },
+      {
+        "name": "Lo Hua Xing",
+        "x": 722,
+        "y": 379,
+        "size": "L"
+      },
+      {
+        "name": "Hemay Town",
+        "x": 865,
+        "y": 182,
+        "size": "L"
+      },
+      {
+        "name": "Mu Ho Ban",
+        "x": 729,
+        "y": 189,
+        "size": "L"
+      },
+      {
+        "name": "Kun Xin",
+        "x": 654,
+        "y": 120,
+        "size": "S"
+      },
+      {
+        "name": "Rai An",
+        "x": 474,
+        "y": 110,
+        "size": "L"
+      },
+      {
+        "name": "Nan Chuan",
+        "x": 296,
+        "y": 112,
+        "size": "L"
+      },
+      {
+        "name": "Stadium",
+        "x": 349,
+        "y": 301,
+        "size": "S"
+      },
+      {
+        "name": "Test Track",
+        "x": 549,
+        "y": 434,
+        "size": "L"
+      },
+      {
+        "name": "Neox Factory",
+        "x": 603,
+        "y": 457,
+        "size": "L"
+      },
+      {
+        "name": "Bamboo",
+        "x": 468,
+        "y": 325,
+        "size": "S"
+      }
+    ]
+  },
+  "vikendi": {
+    "name": "Vikendi",
+    "image": "vikendi.png",
+    "locations": [
+      {
+        "name": "Cluster 1",
+        "x": 720,
+        "y": 895,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 2",
+        "x": 331,
+        "y": 868,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 3",
+        "x": 389,
+        "y": 819,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 4",
+        "x": 730,
+        "y": 806,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 5",
+        "x": 488,
+        "y": 809,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 6",
+        "x": 728,
+        "y": 785,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 7",
+        "x": 238,
+        "y": 784,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 8",
+        "x": 434,
+        "y": 770,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 9",
+        "x": 494,
+        "y": 673,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 10",
+        "x": 455,
+        "y": 672,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 11",
+        "x": 682,
+        "y": 643,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 12",
+        "x": 535,
+        "y": 633,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 13",
+        "x": 457,
+        "y": 634,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 14",
+        "x": 795,
+        "y": 626,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 15",
+        "x": 114,
+        "y": 615,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 16",
+        "x": 581,
+        "y": 612,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 17",
+        "x": 476,
+        "y": 571,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 18",
+        "x": 868,
+        "y": 564,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 19",
+        "x": 820,
+        "y": 558,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 20",
+        "x": 325,
+        "y": 539,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 21",
+        "x": 219,
+        "y": 541,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 22",
+        "x": 737,
+        "y": 522,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 23",
+        "x": 611,
+        "y": 490,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 24",
+        "x": 406,
+        "y": 497,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 25",
+        "x": 777,
+        "y": 492,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 26",
+        "x": 212,
+        "y": 455,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 27",
+        "x": 722,
+        "y": 448,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 28",
+        "x": 295,
+        "y": 442,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 29",
+        "x": 230,
+        "y": 412,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 30",
+        "x": 847,
+        "y": 401,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 31",
+        "x": 291,
+        "y": 374,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 32",
+        "x": 659,
+        "y": 368,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 33",
+        "x": 424,
+        "y": 359,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 34",
+        "x": 790,
+        "y": 360,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 35",
+        "x": 433,
+        "y": 334,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 36",
+        "x": 651,
+        "y": 331,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 37",
+        "x": 722,
+        "y": 305,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 38",
+        "x": 618,
+        "y": 265,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 39",
+        "x": 218,
+        "y": 239,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 40",
+        "x": 139,
+        "y": 223,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 41",
+        "x": 468,
+        "y": 176,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 42",
+        "x": 763,
+        "y": 144,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 43",
+        "x": 630,
+        "y": 138,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 44",
+        "x": 484,
+        "y": 111,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 45",
+        "x": 521,
+        "y": 76,
+        "size": "S"
+      }
+    ]
+  }
+}
