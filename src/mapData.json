@@ -166,13 +166,13 @@
         "size": "S"
       },
       {
-        "name": "Cluster 3",
+        "name": "Winery",
         "x": 389,
         "y": 819,
         "size": "L"
       },
       {
-        "name": "Cluster 4",
+        "name": "Kranik",
         "x": 730,
         "y": 802,
         "size": "L"
@@ -184,8 +184,8 @@
         "size": "S"
       },
       {
-        "name": "Cluster 7",
-        "x": 238,
+        "name": "Pavilka",
+        "x": 237,
         "y": 784,
         "size": "L"
       },
@@ -208,7 +208,7 @@
         "size": "S"
       },
       {
-        "name": "Cluster 13",
+        "name": "Deka Mesto",
         "x": 475,
         "y": 669,
         "size": "L"
@@ -238,8 +238,8 @@
         "size": "S"
       },
       {
-        "name": "Cluster 18",
-        "x": 874,
+        "name": "Trika",
+        "x": 873,
         "y": 585,
         "size": "L"
       },
@@ -334,7 +334,7 @@
         "size": "L"
       },
       {
-        "name": "Cluster 36",
+        "name": "Laveni",
         "x": 656,
         "y": 310,
         "size": "L"
@@ -370,7 +370,7 @@
         "size": "L"
       },
       {
-        "name": "Cluster 42",
+        "name": "Cosmodrome",
         "x": 763,
         "y": 144,
         "size": "L"

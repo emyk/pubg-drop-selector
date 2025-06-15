@@ -209,7 +209,10 @@ const EditForm: React.FC<EditFormProps> = ({
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
+      <form
+        className={styles.modal}
+        onSubmit={() => onSave(editingLocation as Location)}
+      >
         <h3 className={styles.modalTitle}>
           {isEditing ? "Edit Location" : "Add New Location"}
         </h3>
@@ -218,6 +221,7 @@ const EditForm: React.FC<EditFormProps> = ({
           <div>
             <label className={styles.label}>Name:</label>
             <input
+              autoFocus
               type="text"
               value={editingLocation.name || ""}
               onChange={(e) =>
@@ -273,7 +277,7 @@ const EditForm: React.FC<EditFormProps> = ({
 
         <div className={styles.modalButtons}>
           <button
-            onClick={() => onSave(editingLocation as Location)}
+            type={"submit"}
             disabled={!editingLocation.name}
             className={`${styles.button} ${styles.buttonGreen} ${styles.flexButton} ${!editingLocation.name ? styles.disabled : ""}`}
           >
@@ -286,7 +290,7 @@ const EditForm: React.FC<EditFormProps> = ({
             Cancel
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
