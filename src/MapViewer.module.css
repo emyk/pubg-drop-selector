@@ -408,3 +408,11 @@
 .locationsGrid::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
 }
+
+.lineOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10;
+}

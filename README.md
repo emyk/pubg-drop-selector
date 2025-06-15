@@ -1,3 +1,3 @@
 # Pubg drop selector. 
 
-Vibed with claude.
+(Initially) Vibed with claude. Fixed later, because vibe.

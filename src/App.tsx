@@ -2,9 +2,9 @@ import React, { useState, useRef, useCallback } from "react";
 import styles from "./MapViewer.module.css";
 import type { MapDataCollection, Location, Size } from "./types.ts";
 import mapData from "./mapData.json" with { type: "json" };
-import { keysOf } from "./util.ts";
+import { keysOf, pointToLineDistance } from "./util.ts";
 
-export const initialMapData = mapData as MapDataCollection;
+const initialMapData = mapData as MapDataCollection;
 
 interface TooltipState {
   visible: boolean;
@@ -95,6 +95,8 @@ const Marker: React.FC<MarkerProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    console.log(e);
+
     if (isEditMode && e.shiftKey && onDelete) {
       e.stopPropagation();
       onDelete(index);
@@ -125,6 +127,7 @@ const Marker: React.FC<MarkerProps> = ({
     if (distance < 5) {
       if (isEditMode && onEdit) {
         e.stopPropagation();
+        console.log('redigerer', index, location)
         onEdit(index);
       }
     }
@@ -293,12 +296,23 @@ const MapViewer: React.FC = () => {
   const [currentMap, setCurrentMap] =
     useState<keyof MapDataCollection>("vikendi");
   const [sizeFilter, setSizeFilter] = useState<Size | undefined>(undefined);
-  const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
+  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(
+    null,
+  );
   const [tooltip, setTooltip] = useState<TooltipState>({
     visible: false,
     location: null,
     position: { x: 0, y: 0 },
   });
+  const [drawLine, setDrawLine] = useState<{
+    start: { x: number; y: number } | null;
+    end: { x: number; y: number } | null;
+  }>({ start: null, end: null });
+  const [imageSize, setImageSize] = useState<{ width: number; height: number }>(
+    { width: 0, height: 0 },
+  );
+  const [maximumDistanceFromLine, setMaximumDistanceFromLine] =
+    useState<number>(200);
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [editingLocation, setEditingLocation] =
@@ -315,26 +329,32 @@ const MapViewer: React.FC = () => {
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
+  const mapCoordToPixels = (loc: { x: number; y: number }) => ({
+    x: (loc.x / 1000) * imageSize.width,
+    y: (loc.y / 1000) * imageSize.height,
+  });
+
   const currentMapData = mapData[currentMap];
   const filteredLocations = currentMapData.locations.filter(
     (loc) => !sizeFilter || loc.size === sizeFilter,
   );
   const selectedLocation =
-    selectedMarker !== null ? currentMapData.locations[selectedMarker] : null;
+    selectedMarkerIndex !== null
+      ? currentMapData.locations[selectedMarkerIndex]
+      : null;
 
   const handleMarkerSelect = useCallback(
     (index: number) => {
       if (!dragState.isDragging) {
-        setSelectedMarker(selectedMarker === index ? null : index);
+        setSelectedMarkerIndex(selectedMarkerIndex === index ? null : index);
       }
     },
-    [selectedMarker, dragState.isDragging],
+    [selectedMarkerIndex, dragState.isDragging],
   );
 
   const handleMarkerEdit = useCallback(
     (index: number) => {
       const location = currentMapData.locations[index];
-      console.log(index, location);
       setEditingLocation({ ...location });
       setEditingIndex(index);
     },
@@ -373,7 +393,7 @@ const MapViewer: React.FC = () => {
           locations: prev[currentMap].locations.filter((_, i) => i !== index),
         },
       }));
-      setSelectedMarker(null);
+      setSelectedMarkerIndex(null);
     },
     [currentMap],
   );
@@ -490,7 +510,34 @@ const MapViewer: React.FC = () => {
 
   const handleMapClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isEditMode || dragState.isDragging || dragState.justFinishedDrag)
+      if (
+        e.ctrlKey &&
+        !isEditMode &&
+        !dragState.isDragging &&
+        !dragState.justFinishedDrag
+      ) {
+        const img = e.currentTarget.querySelector("img");
+        if (!img) return;
+
+        const imgRect = img.getBoundingClientRect();
+        const x = ((e.clientX - imgRect.left) / imgRect.width) * 1000;
+        const y = ((e.clientY - imgRect.top) / imgRect.height) * 1000;
+
+        if (!drawLine.start) {
+          setDrawLine({ start: { x, y }, end: null });
+        } else {
+          setDrawLine((prev) => ({ ...prev, end: { x, y } }));
+        }
+
+        return;
+      }
+
+      if (
+        !isEditMode ||
+        dragState.isDragging ||
+        dragState.justFinishedDrag ||
+        e.shiftKey
+      )
         return;
 
       const img = e.currentTarget.querySelector("img");
@@ -508,13 +555,18 @@ const MapViewer: React.FC = () => {
       });
       setEditingIndex(null); // null means we're adding a new location
     },
-    [isEditMode, dragState.isDragging, dragState.justFinishedDrag],
+    [
+      isEditMode,
+      dragState.isDragging,
+      dragState.justFinishedDrag,
+      currentMapData.locations.length,
+      drawLine,
+      sizeFilter,
+    ],
   );
 
   const handleLocationSave = useCallback(
     (editedLocation: Location) => {
-      console.log(editedLocation, editingIndex);
-
       setMapData((prev) => {
         if (editingIndex !== null) {
           // Edit existing location
@@ -556,19 +608,37 @@ const MapViewer: React.FC = () => {
       return;
     }
 
+    let candidates = filteredLocations;
+
+    if (drawLine.start && drawLine.end) {
+      candidates = candidates.filter((loc) => {
+        const dist = pointToLineDistance(loc, drawLine.start!, drawLine.end!);
+        return dist <= maximumDistanceFromLine;
+      });
+    }
+
+    if (candidates.length === 0) {
+      alert("No locations found within range of the line.");
+      return;
+    }
+
     const randomLocation =
-      filteredLocations[Math.floor(Math.random() * filteredLocations.length)];
-    const locationIndex = filteredLocations.indexOf(randomLocation);
-    setSelectedMarker(locationIndex);
-  }, [filteredLocations]);
+      candidates[Math.floor(Math.random() * candidates.length)];
+    const locationIndex = filteredLocations.findIndex(
+      (loc) => loc === randomLocation,
+    );
+    setSelectedMarkerIndex(locationIndex);
+  }, [filteredLocations, drawLine]);
 
   const clearSelection = useCallback(() => {
-    setSelectedMarker(null);
+    setSelectedMarkerIndex(null);
   }, []);
 
   const exportMapData = useCallback(() => {
     const dataStr = JSON.stringify(mapData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+    navigator.clipboard.writeText(dataStr).then();
+    /*const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
 
     const link = document.createElement("a");
@@ -577,12 +647,12 @@ const MapViewer: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);*/
   }, [mapData]);
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);
-    setSelectedMarker(null);
+    setSelectedMarkerIndex(null);
     // Reset drag state when toggling edit mode
     setDragState({
       isDragging: false,
@@ -624,16 +694,28 @@ const MapViewer: React.FC = () => {
 
           <div className={styles.controlGroup}>
             <label className={styles.controlLabel}>Size:</label>
-
             <select
               value={sizeFilter}
               className={styles.input}
               onChange={(e) => setSizeFilter(e.target.value as Size)}
             >
-              <option value={undefined}>All</option>
+              <option value={""}>All</option>
               <option value="S">Small</option>
               <option value="L">Large</option>
             </select>
+
+            <label className={styles.controlLabel}>
+              Max distance from line in px:
+            </label>
+            <input
+              value={maximumDistanceFromLine}
+              className={styles.input}
+              style={{ maxWidth: "50px" }}
+              onChange={(e) => {
+                if (isNaN(parseInt(e.target.value))) return;
+                setMaximumDistanceFromLine(parseInt(e.target.value));
+              }}
+            />
           </div>
 
           <div className={styles.controlGroup}>
@@ -650,6 +732,14 @@ const MapViewer: React.FC = () => {
             >
               Clear Selection
             </button>
+            {drawLine.start && drawLine.end && (
+              <button
+                onClick={() => setDrawLine({ start: null, end: null })}
+                className={`${styles.button} ${styles.buttonGray}`}
+              >
+                Clear Line
+              </button>
+            )}
           </div>
 
           <div className={styles.controlGroup}>
@@ -684,28 +774,92 @@ const MapViewer: React.FC = () => {
           onClick={handleMapClick}
           style={{ cursor: dragState.isDragging ? "grabbing" : "default" }}
         >
+          {drawLine.start && (
+            <svg
+              className={styles.lineOverlay}
+              style={{ width: imageSize.width, height: imageSize.height }}
+            >
+              {/* Start Circle */}
+              <circle
+                cx={mapCoordToPixels(drawLine.start).x}
+                cy={mapCoordToPixels(drawLine.start).y}
+                r={6}
+                fill="blue"
+                stroke="white"
+                strokeWidth={2}
+              />
+
+              {/* Optional Line and End Circle */}
+              {drawLine.end && (
+                <>
+                  <line
+                    x1={mapCoordToPixels({ x: 25, y: 25 }).x}
+                    y1={mapCoordToPixels({ x: 25, y: 25 }).y}
+                    x2={
+                      mapCoordToPixels({
+                        x: 25 + maximumDistanceFromLine,
+                        y: 25,
+                      }).x
+                    }
+                    y2={mapCoordToPixels({ x: 25, y: 25 }).y}
+                    stroke="red"
+                    strokeWidth={4}
+                  />
+                  <line
+                    x1={mapCoordToPixels(drawLine.start).x}
+                    y1={mapCoordToPixels(drawLine.start).y}
+                    x2={mapCoordToPixels(drawLine.end).x}
+                    y2={mapCoordToPixels(drawLine.end).y}
+                    stroke="red"
+                    strokeWidth={2}
+                  />
+                  <circle
+                    cx={mapCoordToPixels(drawLine.end).x}
+                    cy={mapCoordToPixels(drawLine.end).y}
+                    r={6}
+                    fill="blue"
+                    stroke="white"
+                    strokeWidth={2}
+                  />
+                </>
+              )}
+            </svg>
+          )}
+
           <img
             src={"pubg-drop-selector/" + mapData[currentMap].image}
             alt="Map"
             className={styles.mapImage}
+            onLoad={(e) => {
+              const { width, height } = e.currentTarget.getBoundingClientRect();
+              setImageSize({ width, height });
+            }}
           />
 
-          {filteredLocations.map((location, index) => (
-            <Marker
-              key={index}
-              location={location}
-              index={index}
-              isSelected={selectedMarker === index}
-              isEditMode={isEditMode}
-              isDragging={dragState.isDragging && dragState.dragIndex === index}
-              onSelect={handleMarkerSelect}
-              onHover={handleMarkerHover}
-              onLeave={handleMarkerLeave}
-              onDelete={handleMarkerDelete}
-              onDragStart={handleDragStart}
-              onEdit={handleMarkerEdit}
-            />
-          ))}
+          {filteredLocations.map((location) => {
+            const listIndex = currentMapData.locations.findIndex(
+              (loc) => loc === location,
+            );
+
+            return (
+              <Marker
+                key={listIndex}
+                location={location}
+                index={listIndex}
+                isSelected={selectedMarkerIndex === listIndex}
+                isEditMode={isEditMode}
+                isDragging={
+                  dragState.isDragging && dragState.dragIndex === listIndex
+                }
+                onSelect={handleMarkerSelect}
+                onHover={handleMarkerHover}
+                onLeave={handleMarkerLeave}
+                onDelete={handleMarkerDelete}
+                onDragStart={handleDragStart}
+                onEdit={handleMarkerEdit}
+              />
+            );
+          })}
         </div>
 
         <Tooltip

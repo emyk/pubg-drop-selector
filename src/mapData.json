@@ -174,19 +174,13 @@
       {
         "name": "Cluster 4",
         "x": 730,
-        "y": 806,
-        "size": "S"
+        "y": 802,
+        "size": "L"
       },
       {
         "name": "Cluster 5",
         "x": 488,
         "y": 809,
-        "size": "S"
-      },
-      {
-        "name": "Cluster 6",
-        "x": 728,
-        "y": 785,
         "size": "S"
       },
       {
@@ -202,21 +196,9 @@
         "size": "S"
       },
       {
-        "name": "Cluster 9",
-        "x": 494,
-        "y": 673,
-        "size": "S"
-      },
-      {
-        "name": "Cluster 10",
-        "x": 455,
-        "y": 672,
-        "size": "S"
-      },
-      {
         "name": "Cluster 11",
-        "x": 682,
-        "y": 643,
+        "x": 665,
+        "y": 640,
         "size": "S"
       },
       {
@@ -227,9 +209,9 @@
       },
       {
         "name": "Cluster 13",
-        "x": 457,
-        "y": 634,
-        "size": "S"
+        "x": 475,
+        "y": 669,
+        "size": "L"
       },
       {
         "name": "Cluster 14",
@@ -241,7 +223,7 @@
         "name": "Cluster 15",
         "x": 114,
         "y": 615,
-        "size": "S"
+        "size": "L"
       },
       {
         "name": "Cluster 16",
@@ -257,9 +239,9 @@
       },
       {
         "name": "Cluster 18",
-        "x": 868,
-        "y": 564,
-        "size": "S"
+        "x": 874,
+        "y": 585,
+        "size": "L"
       },
       {
         "name": "Cluster 19",
@@ -289,13 +271,13 @@
         "name": "Cluster 23",
         "x": 611,
         "y": 490,
-        "size": "S"
+        "size": "L"
       },
       {
         "name": "Cluster 24",
         "x": 406,
         "y": 497,
-        "size": "S"
+        "size": "L"
       },
       {
         "name": "Cluster 25",
@@ -311,8 +293,8 @@
       },
       {
         "name": "Cluster 27",
-        "x": 722,
-        "y": 448,
+        "x": 728,
+        "y": 455,
         "size": "S"
       },
       {
@@ -331,24 +313,12 @@
         "name": "Cluster 30",
         "x": 847,
         "y": 401,
-        "size": "S"
+        "size": "L"
       },
       {
         "name": "Cluster 31",
         "x": 291,
         "y": 374,
-        "size": "S"
-      },
-      {
-        "name": "Cluster 32",
-        "x": 659,
-        "y": 368,
-        "size": "S"
-      },
-      {
-        "name": "Cluster 33",
-        "x": 424,
-        "y": 359,
         "size": "S"
       },
       {
@@ -359,15 +329,15 @@
       },
       {
         "name": "Cluster 35",
-        "x": 433,
-        "y": 334,
-        "size": "S"
+        "x": 427,
+        "y": 352,
+        "size": "L"
       },
       {
         "name": "Cluster 36",
-        "x": 651,
-        "y": 331,
-        "size": "S"
+        "x": 656,
+        "y": 310,
+        "size": "L"
       },
       {
         "name": "Cluster 37",
@@ -422,6 +392,150 @@
         "x": 521,
         "y": 76,
         "size": "S"
+      },
+      {
+        "name": "Cluster 46",
+        "x": 312,
+        "y": 666,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 47",
+        "x": 247,
+        "y": 669,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 48",
+        "x": 166,
+        "y": 672,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 49",
+        "x": 169,
+        "y": 731,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 50",
+        "x": 121,
+        "y": 698,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 51",
+        "x": 132,
+        "y": 537,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 52",
+        "x": 177,
+        "y": 517,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 53",
+        "x": 330,
+        "y": 801,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 54",
+        "x": 304,
+        "y": 769,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 55",
+        "x": 558,
+        "y": 790,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 56",
+        "x": 619,
+        "y": 833,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 57",
+        "x": 525,
+        "y": 830,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 58",
+        "x": 884,
+        "y": 467,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 59",
+        "x": 816,
+        "y": 317,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 60",
+        "x": 305,
+        "y": 214,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 61",
+        "x": 322,
+        "y": 123,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 62",
+        "x": 276,
+        "y": 189,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 63",
+        "x": 580,
+        "y": 197,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 64",
+        "x": 371,
+        "y": 926,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 65",
+        "x": 213,
+        "y": 627,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 66",
+        "x": 511,
+        "y": 293,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 67",
+        "x": 397,
+        "y": 280,
+        "size": "S"
+      },
+      {
+        "name": "Cluster 68",
+        "x": 444,
+        "y": 453,
+        "size": "L"
+      },
+      {
+        "name": "Cluster 69",
+        "x": 384,
+        "y": 465,
+        "size": "L"
       }
     ]
   }
