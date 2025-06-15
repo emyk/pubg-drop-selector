@@ -159,9 +159,10 @@
   border: 1px solid #d97706;
   border-radius: 0.5rem;
   padding: 1rem;
-  margin-bottom: 1rem;
   text-align: center;
-  width: 100%;
+  max-width: 1008px;
+  margin: 0 auto 1rem;
+  box-sizing: border-box;
 }
 
 .editInstructions p {
