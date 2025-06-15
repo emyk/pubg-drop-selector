@@ -669,243 +669,237 @@ const MapViewer: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.maxWidth}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>PUBG Drop Selector</h1>
-          <p className={styles.subtitle}>
-            Select a map, filter locations by building count, and discover
-            random locations
-          </p>
+      <div className={styles.header}>
+        <h1 className={styles.title}>PUBG Drop Selector</h1>
+      </div>
+
+      <div className={styles.controls}>
+        <div className={styles.controlGroup}>
+          <label className={styles.controlLabel}>Map:</label>
+          <select
+            value={currentMap}
+            onChange={(e) =>
+              setCurrentMap(e.target.value as keyof MapDataCollection)
+            }
+            className={styles.select}
+          >
+            {keysOf(mapData).map((key) => (
+              <option key={key} value={key}>
+                {mapData[key].name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className={styles.controls}>
-          <div className={styles.controlGroup}>
-            <label className={styles.controlLabel}>Map:</label>
-            <select
-              value={currentMap}
-              onChange={(e) =>
-                setCurrentMap(e.target.value as keyof MapDataCollection)
-              }
-              className={styles.select}
-            >
-              {keysOf(mapData).map((key) => (
-                <option key={key} value={key}>
-                  {mapData[key].name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className={styles.controlGroup}>
+          <label className={styles.controlLabel}>Size:</label>
+          <select
+            value={sizeFilter}
+            className={styles.input}
+            onChange={(e) => setSizeFilter(e.target.value as Size)}
+          >
+            <option value={""}>All</option>
+            <option value="S">Small</option>
+            <option value="L">Large</option>
+          </select>
 
-          <div className={styles.controlGroup}>
-            <label className={styles.controlLabel}>Size:</label>
-            <select
-              value={sizeFilter}
-              className={styles.input}
-              onChange={(e) => setSizeFilter(e.target.value as Size)}
-            >
-              <option value={""}>All</option>
-              <option value="S">Small</option>
-              <option value="L">Large</option>
-            </select>
-
-            <label className={styles.controlLabel}>
-              Max distance from line in px:
-            </label>
-            <input
-              value={maximumDistanceFromLine}
-              className={styles.input}
-              style={{ maxWidth: "50px" }}
-              onChange={(e) => {
-                if (isNaN(parseInt(e.target.value))) return;
-                setMaximumDistanceFromLine(parseInt(e.target.value));
-              }}
-            />
-          </div>
-
-          <div className={styles.controlGroup}>
-            <button
-              onClick={selectRandomLocation}
-              disabled={isEditMode}
-              className={`${styles.button} ${styles.buttonGreen} ${isEditMode ? styles.disabled : ""}`}
-            >
-              Get Random Location
-            </button>
-            <button
-              onClick={clearSelection}
-              className={`${styles.button} ${styles.buttonGray}`}
-            >
-              Clear Selection
-            </button>
-            {drawLine.start && drawLine.end && (
-              <button
-                onClick={() => setDrawLine({ start: null, end: null })}
-                className={`${styles.button} ${styles.buttonGray}`}
-              >
-                Clear Line
-              </button>
-            )}
-          </div>
-
-          <div className={styles.controlGroup}>
-            <button
-              onClick={toggleEditMode}
-              className={`${styles.button} ${isEditMode ? styles.buttonYellow : styles.buttonBlue}`}
-            >
-              {isEditMode ? "Exit Edit Mode" : "Edit Mode"}
-            </button>
-            <button
-              onClick={exportMapData}
-              className={`${styles.button} ${styles.buttonPurple}`}
-            >
-              Export JSON
-            </button>
-          </div>
-        </div>
-
-        {isEditMode ? (
-          <div className={styles.editInstructions}>
-            <p>
-              <strong>Edit Mode Active:</strong> Click on the map to add new
-              locations. Click on markers to edit them. Drag markers to move
-              them. Shift+Click on markers to delete them.
-            </p>
-          </div>
-        ) : (
-          <div className={styles.editInstructions}>
-            <p>
-              <strong>Tip:</strong> Hold ctrl and click to draw a flight path.
-              Drops will be chosen along the path.
-            </p>
-          </div>
-        )}
-
-        <div
-          ref={mapContainerRef}
-          className={`${styles.mapContainer} ${isEditMode ? styles.editCursor : ""}`}
-          onClick={handleMapClick}
-          style={{ cursor: dragState.isDragging ? "grabbing" : "default" }}
-        >
-          {drawLine.start && (
-            <svg
-              className={styles.lineOverlay}
-              style={{ width: imageSize.width, height: imageSize.height }}
-            >
-              {/* Start Circle */}
-              <circle
-                cx={mapCoordToPixels(drawLine.start).x}
-                cy={mapCoordToPixels(drawLine.start).y}
-                r={6}
-                fill="blue"
-                stroke="white"
-                strokeWidth={2}
-              />
-
-              {/* Optional Line and End Circle */}
-              {drawLine.end && (
-                <>
-                  <line
-                    x1={mapCoordToPixels({ x: 25, y: 25 }).x}
-                    y1={mapCoordToPixels({ x: 25, y: 25 }).y}
-                    x2={
-                      mapCoordToPixels({
-                        x: 25 + maximumDistanceFromLine,
-                        y: 25,
-                      }).x
-                    }
-                    y2={mapCoordToPixels({ x: 25, y: 25 }).y}
-                    stroke="red"
-                    strokeWidth={20}
-                  />
-                  <text
-                    style={{ fill: "white" }}
-                    x={mapCoordToPixels({ x: 25, y: 30 }).x}
-                    y={mapCoordToPixels({ x: 25, y: 30 }).y}
-                  >
-                    Max drop dist.
-                  </text>
-                  <line
-                    x1={mapCoordToPixels(drawLine.start).x}
-                    y1={mapCoordToPixels(drawLine.start).y}
-                    x2={mapCoordToPixels(drawLine.end).x}
-                    y2={mapCoordToPixels(drawLine.end).y}
-                    stroke="red"
-                    strokeWidth={2}
-                  />
-                  <circle
-                    cx={mapCoordToPixels(drawLine.end).x}
-                    cy={mapCoordToPixels(drawLine.end).y}
-                    r={6}
-                    fill="blue"
-                    stroke="white"
-                    strokeWidth={2}
-                  />
-                </>
-              )}
-            </svg>
-          )}
-
-          <img
-            src={mapData[currentMap].image}
-            alt="Map"
-            className={styles.mapImage}
-            onLoad={(e) => {
-              const { width, height } = e.currentTarget.getBoundingClientRect();
-              setImageSize({ width, height });
+          <label className={styles.controlLabel}>
+            Max distance from line in px:
+          </label>
+          <input
+            value={maximumDistanceFromLine}
+            className={styles.input}
+            style={{ maxWidth: "50px" }}
+            onChange={(e) => {
+              if (isNaN(parseInt(e.target.value))) return;
+              setMaximumDistanceFromLine(parseInt(e.target.value));
             }}
           />
-
-          {filteredLocations.map((location) => {
-            const listIndex = currentMapData.locations.findIndex(
-              (loc) => loc === location,
-            );
-
-            return (
-              <Marker
-                key={listIndex}
-                location={location}
-                index={listIndex}
-                isSelected={selectedMarkerIndex === listIndex}
-                isEditMode={isEditMode}
-                isDragging={
-                  dragState.isDragging && dragState.dragIndex === listIndex
-                }
-                onSelect={handleMarkerSelect}
-                onHover={handleMarkerHover}
-                onLeave={handleMarkerLeave}
-                onDelete={handleMarkerDelete}
-                onDragStart={handleDragStart}
-                onEdit={handleMarkerEdit}
-              />
-            );
-          })}
         </div>
 
-        <Tooltip
-          location={tooltip.location}
-          position={tooltip.position}
-          visible={tooltip.visible}
-        />
+        <div className={styles.controlGroup}>
+          <button
+            onClick={selectRandomLocation}
+            disabled={isEditMode}
+            className={`${styles.button} ${styles.buttonGreen} ${isEditMode ? styles.disabled : ""}`}
+          >
+            Get Random Location
+          </button>
+          <button
+            onClick={clearSelection}
+            className={`${styles.button} ${styles.buttonGray}`}
+          >
+            Clear Selection
+          </button>
+          {drawLine.start && drawLine.end && (
+            <button
+              onClick={() => setDrawLine({ start: null, end: null })}
+              className={`${styles.button} ${styles.buttonGray}`}
+            >
+              Clear Line
+            </button>
+          )}
+        </div>
 
-        {editingLocation && (
-          <EditForm
-            locationToEdit={editingLocation}
-            onSave={handleLocationSave}
-            onCancel={handleLocationCancel}
-            isEditing={editingIndex !== null}
-          />
+        <div className={styles.controlGroup}>
+          <button
+            onClick={toggleEditMode}
+            className={`${styles.button} ${isEditMode ? styles.buttonYellow : styles.buttonBlue}`}
+          >
+            {isEditMode ? "Exit Edit Mode" : "Edit Mode"}
+          </button>
+          <button
+            onClick={exportMapData}
+            className={`${styles.button} ${styles.buttonPurple}`}
+          >
+            Export JSON
+          </button>
+        </div>
+      </div>
+
+      {isEditMode ? (
+        <div className={styles.editInstructions}>
+          <p>
+            <strong>Edit Mode Active:</strong> Click on the map to add new
+            locations. Click on markers to edit them. Drag markers to move them.
+            Shift+Click on markers to delete them.
+          </p>
+        </div>
+      ) : (
+        <div className={styles.editInstructions}>
+          <p>
+            <strong>Tip:</strong> Hold ctrl and click to draw a flight path.
+            Drops will be chosen along the path.
+          </p>
+        </div>
+      )}
+
+      <div
+        ref={mapContainerRef}
+        className={`${styles.mapContainer} ${isEditMode ? styles.editCursor : ""}`}
+        onClick={handleMapClick}
+        style={{ cursor: dragState.isDragging ? "grabbing" : "default" }}
+      >
+        {drawLine.start && (
+          <svg
+            className={styles.lineOverlay}
+            style={{ width: imageSize.width, height: imageSize.height }}
+          >
+            {/* Start Circle */}
+            <circle
+              cx={mapCoordToPixels(drawLine.start).x}
+              cy={mapCoordToPixels(drawLine.start).y}
+              r={6}
+              fill="blue"
+              stroke="white"
+              strokeWidth={2}
+            />
+
+            {/* Optional Line and End Circle */}
+            {drawLine.end && (
+              <>
+                <line
+                  x1={mapCoordToPixels({ x: 25, y: 25 }).x}
+                  y1={mapCoordToPixels({ x: 25, y: 25 }).y}
+                  x2={
+                    mapCoordToPixels({
+                      x: 25 + maximumDistanceFromLine,
+                      y: 25,
+                    }).x
+                  }
+                  y2={mapCoordToPixels({ x: 25, y: 25 }).y}
+                  stroke="red"
+                  strokeWidth={20}
+                />
+                <text
+                  style={{ fill: "white" }}
+                  x={mapCoordToPixels({ x: 25, y: 30 }).x}
+                  y={mapCoordToPixels({ x: 25, y: 30 }).y}
+                >
+                  Max drop dist.
+                </text>
+                <line
+                  x1={mapCoordToPixels(drawLine.start).x}
+                  y1={mapCoordToPixels(drawLine.start).y}
+                  x2={mapCoordToPixels(drawLine.end).x}
+                  y2={mapCoordToPixels(drawLine.end).y}
+                  stroke="red"
+                  strokeWidth={2}
+                />
+                <circle
+                  cx={mapCoordToPixels(drawLine.end).x}
+                  cy={mapCoordToPixels(drawLine.end).y}
+                  r={6}
+                  fill="blue"
+                  stroke="white"
+                  strokeWidth={2}
+                />
+              </>
+            )}
+          </svg>
         )}
 
-        <SelectedMarker location={selectedLocation} />
+        <img
+          src={mapData[currentMap].image}
+          alt="Map"
+          className={styles.mapImage}
+          onLoad={(e) => {
+            const { width, height } = e.currentTarget.getBoundingClientRect();
+            setImageSize({ width, height });
+          }}
+        />
 
-        <div className={styles.infoPanel}>
-          <h3 className={styles.infoPanelTitle}>
-            All Locations ({filteredLocations.length})
-          </h3>
-          <div className={styles.locationsGrid}>
-            {filteredLocations.map((location, index) => (
-              <LocationItem key={index} location={location} />
-            ))}
-          </div>
+        {filteredLocations.map((location) => {
+          const listIndex = currentMapData.locations.findIndex(
+            (loc) => loc === location,
+          );
+
+          return (
+            <Marker
+              key={listIndex}
+              location={location}
+              index={listIndex}
+              isSelected={selectedMarkerIndex === listIndex}
+              isEditMode={isEditMode}
+              isDragging={
+                dragState.isDragging && dragState.dragIndex === listIndex
+              }
+              onSelect={handleMarkerSelect}
+              onHover={handleMarkerHover}
+              onLeave={handleMarkerLeave}
+              onDelete={handleMarkerDelete}
+              onDragStart={handleDragStart}
+              onEdit={handleMarkerEdit}
+            />
+          );
+        })}
+      </div>
+
+      <Tooltip
+        location={tooltip.location}
+        position={tooltip.position}
+        visible={tooltip.visible}
+      />
+
+      {editingLocation && (
+        <EditForm
+          locationToEdit={editingLocation}
+          onSave={handleLocationSave}
+          onCancel={handleLocationCancel}
+          isEditing={editingIndex !== null}
+        />
+      )}
+
+      <SelectedMarker location={selectedLocation} />
+
+      <div className={styles.infoPanel}>
+        <h3 className={styles.infoPanelTitle}>
+          Filtered Locations ({filteredLocations.length})
+        </h3>
+        <div className={styles.locationsGrid}>
+          {filteredLocations.map((location, index) => (
+            <LocationItem key={index} location={location} />
+          ))}
         </div>
       </div>
     </div>

@@ -3,12 +3,9 @@
   min-height: 100vh;
   background-color: #1f2937;
   color: white;
-}
-
-.maxWidth {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Header */
@@ -47,7 +44,7 @@
   align-items: center;
   gap: 0.75rem;
   background-color: #374151;
-  padding: 1rem;
+  padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid #4b5563;
 }
@@ -160,6 +157,7 @@
   padding: 1rem;
   margin-bottom: 1.5rem;
   text-align: center;
+  max-width: 30rem;
 }
 
 .editInstructions p {
