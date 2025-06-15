@@ -669,6 +669,7 @@ const MapViewer: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.content}>
       <div className={styles.header}>
         <h1 className={styles.title}>PUBG Drop Selector</h1>
       </div>
@@ -901,6 +902,7 @@ const MapViewer: React.FC = () => {
             <LocationItem key={index} location={location} />
           ))}
         </div>
+      </div>
       </div>
     </div>
   );

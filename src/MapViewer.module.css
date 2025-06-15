@@ -8,6 +8,10 @@
   align-items: center;
 }
 
+.content {
+  max-width: 1280px;
+}
+
 /* Header */
 .header {
   text-align: center;
@@ -33,8 +37,8 @@
 .controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.25rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
   justify-content: center;
   align-items: center;
 }
@@ -155,9 +159,9 @@
   border: 1px solid #d97706;
   border-radius: 0.5rem;
   padding: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   text-align: center;
-  max-width: 30rem;
+  width: 100%;
 }
 
 .editInstructions p {
